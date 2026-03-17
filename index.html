@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<title>Bedenktijd</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Source+Serif+4:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --rood: #E7412B;
+  --rood-dark: #C4321E;
+  --zwart: #000000;
+  --offwhite: #FBF9F6;
+  --zand: #F1EFE8;
+  --muted: #888880;
+  --border: rgba(0,0,0,0.08);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--zwart);
+  font-family: 'Source Serif 4', Georgia, serif;
+  color: var(--zwart);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── SHELL ── */
+.shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #111;
+  position: relative;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: var(--zwart);
+  border-radius: 52px;
+  border: 8px solid #1A1A1A;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.05),
+    0 60px 120px rgba(0,0,0,0.8),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Notch */
+.phone-frame::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 126px; height: 34px;
+  background: var(--zwart);
+  border-radius: 0 0 22px 22px;
+  z-index: 100;
+}
+
+/* Status bar */
+.status-bar {
+  height: 44px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 24px 7px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.status-time {
+  font-family: 'Source Serif 4', serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+.status-icons { display: flex; align-items: center; gap: 5px; }
+
+.app { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+/* ── SCREENS ── */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+.screen.active { opacity: 1; pointer-events: all; }
+
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ── HOME ── */
+#screen-home { background: var(--zwart); }
+#screen-home .status-bar { color: white; }
+
+.home-pad { padding: 14px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.topbar { display: flex; justify-content: space-between; align-items: flex-start; }
+.topbar-left {}
+.top-greeting { font-size: 11px; color: rgba(255,255,255,0.45); margin-bottom: 3px; font-family: 'Source Serif 4'; }
+.top-date {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+}
+.bell-btn {
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.bell-btn:active { background: rgba(255,255,255,0.14); }
+
+/* Hero card */
+.hero-card {
+  background: var(--rood);
+  border-radius: 20px;
+  padding: 20px;
+}
+.day-theme-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 9px;
+  font-family: 'Source Serif 4';
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 21px;
+  font-weight: 900;
+  color: white;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+.hero-desc {
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.55;
+}
+
+/* Player */
+.player-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+.player-head { margin-bottom: 13px; }
+.player-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2px;
+}
+.player-sub { font-size: 10px; color: rgba(255,255,255,0.4); font-family: 'Source Serif 4'; }
+
+/* Progress */
+.progress-wrap { margin-bottom: 14px; cursor: pointer; }
+.progress-track {
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  margin-bottom: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.progress-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: var(--rood);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.3s linear;
+}
+.progress-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Source Serif 4';
+}
+
+/* Controls */
+.player-controls { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.skip-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; border: none; background: none; cursor: pointer; padding: 3px; }
+.skip-btn:disabled { opacity: 0.28; cursor: default; }
+.skip-circle {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.09);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.skip-circle svg { width: 17px; height: 17px; fill: white; }
+.skip-lbl { font-size: 9px; color: rgba(255,255,255,0.45); font-weight: 600; font-family: 'Source Serif 4'; letter-spacing: 0.3px; }
+.play-btn {
+  width: 52px; height: 52px;
+  background: var(--rood);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(231,65,43,0.45);
+  transition: transform 0.1s, background 0.15s;
+}
+.play-btn:active { transform: scale(0.93); }
+.play-btn svg { width: 22px; height: 22px; fill: white; }
+.play-btn .icon-pause { display: none; }
+.play-btn.playing .icon-play { display: none; }
+.play-btn.playing .icon-pause { display: block; }
+
+/* Week strip */
+.week-row { display: flex; gap: 6px; }
+.day-pill {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border-radius: 9px;
+  padding: 7px 3px 5px;
+  text-align: center;
+  border: 1px solid transparent;
+  cursor: default;
+}
+.day-pill.today { border-color: var(--rood); background: rgba(231,65,43,0.12); }
+.day-letter { font-size: 9px; color: rgba(255,255,255,0.35); font-family: 'Source Serif 4'; margin-bottom: 4px; }
+.day-pill.today .day-letter { color: var(--rood); font-weight: 700; }
+.pill-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.12); margin: 0 auto; }
+.day-pill.done .pill-dot { background: rgba(255,255,255,0.35); }
+.day-pill.today .pill-dot { background: var(--rood); }
+
+/* ── ARCHIVE ── */
+#screen-archive { background: var(--offwhite); }
+#screen-archive .status-bar { color: var(--zwart); }
+
+.arch-hdr { padding: 16px 20px 0; flex-shrink: 0; }
+.arch-page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--zwart);
+  margin-bottom: 3px;
+}
+.arch-page-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; font-family: 'Source Serif 4'; }
+
+.arch-list-wrap { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 9px; }
+
+.arch-item {
+  background: white;
+  border-radius: 14px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.arch-item:active { transform: scale(0.98); }
+.arch-item.today { border-color: var(--rood); }
+
+.date-badge {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: var(--zand);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.date-badge.red { background: var(--rood); }
+.badge-day {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--zwart);
+  line-height: 1;
+}
+.date-badge.red .badge-day { color: white; }
+.badge-mo { font-size: 9px; color: var(--muted); text-transform: uppercase; font-family: 'Source Serif 4'; }
+.date-badge.red .badge-mo { color: rgba(255,255,255,0.75); }
+
+.item-info { flex: 1; min-width: 0; }
+.item-title-a {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--zwart);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+  font-family: 'Source Serif 4';
+}
+.item-theme-a {
+  font-size: 10px;
+  color: var(--rood);
+  font-weight: 600;
+  font-family: 'Source Serif 4';
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.item-play-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--zwart);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.item-play-btn.red { background: var(--rood); }
+.item-play-btn svg { width: 13px; height: 13px; fill: white; margin-left: 2px; }
+
+/* ── DETAIL OVERLAY ── */
+.detail-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--zwart);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+}
+.detail-overlay.open { transform: translateY(0); }
+
+.detail-topbar {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px 0;
+  flex-shrink: 0;
+}
+.back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 8px 8px 0;
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'Source Serif 4', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  transition: color 0.15s;
+}
+.back-btn:active { color: rgba(255,255,255,0.3); }
+.back-btn svg { width: 15px; height: 15px; fill: rgba(255,255,255,0.6); }
+.detail-day-badge {
+  font-family: 'Source Serif 4';
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  margin-left: 6px;
+}
+
+.detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 14px 20px 24px;
+}
+.detail-scroll::-webkit-scrollbar { display: none; }
+
+.detail-info-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+.detail-theme-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--rood);
+  margin-bottom: 8px;
+  font-family: 'Source Serif 4';
+}
+.detail-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.detail-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+  margin-bottom: 12px;
+  font-family: 'Source Serif 4';
+}
+.detail-date-str { font-size: 11px; color: rgba(255,255,255,0.2); font-family: 'Source Serif 4'; }
+
+.detail-player-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+
+/* ── SETTINGS ── */
+#screen-settings { background: var(--offwhite); }
+#screen-settings .status-bar { color: var(--zwart); }
+
+.settings-pad { padding: 16px 20px; }
+.settings-pg-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--zwart);
+  margin-bottom: 22px;
+}
+.sec-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 9px;
+  font-family: 'Source Serif 4';
+}
+.s-tile {
+  background: white;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 0.5px solid var(--border);
+}
+.tile-lbl { font-size: 13px; font-weight: 600; color: var(--zwart); font-family: 'Source Serif 4'; }
+.tile-sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'Source Serif 4'; }
+.toggle {
+  width: 42px; height: 24px;
+  background: var(--rood);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  border: none;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 18px; height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle.off { background: var(--zand); }
+.toggle.off::after { transform: translateX(-18px); }
+
+.brand-card {
+  background: var(--zwart);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 20px;
+}
+.brand-icon-big {
+  width: 48px; height: 48px;
+  background: var(--rood);
+  border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.brand-icon-big svg { width: 28px; height: 28px; fill: white; }
+.brand-name-big {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: white;
+}
+.brand-tag { font-size: 11px; color: rgba(255,255,255,0.4); font-family: 'Source Serif 4'; margin-top: 2px; }
+
+/* ── APP HEADER (logo bar) ── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px 8px;
+  flex-shrink: 0;
+}
+.app-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.app-header-icon {
+  width: 28px; height: 28px;
+  background: var(--rood);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.app-header-icon span {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 17px;
+  line-height: 1;
+}
+.app-header-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 17px;
+  line-height: 1;
+}
+#screen-home .app-header-icon span { color: #fff; }
+#screen-home .app-header-name { color: white; }
+#screen-home .app-header { border-bottom: 1px solid rgba(255,255,255,0.06); }
+#screen-archive .app-header-icon span { color: #fff; }
+#screen-archive .app-header-name { color: var(--zwart); }
+#screen-archive .app-header { border-bottom: 1px solid var(--border); background: var(--offwhite); }
+#screen-settings .app-header-icon span { color: #fff; }
+#screen-settings .app-header-name { color: var(--zwart); }
+#screen-settings .app-header { border-bottom: 1px solid var(--border); background: var(--offwhite); }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 50;
+}
+#screen-home .bottom-nav { background: var(--zwart); border-top: 1px solid rgba(255,255,255,0.06); }
+#screen-archive .bottom-nav, #screen-settings .bottom-nav { background: white; border-top: 1px solid var(--border); }
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+.nav-tab:active { opacity: 0.6; }
+.nav-tab svg { width: 20px; height: 20px; }
+.nav-lbl { font-size: 9px; font-weight: 600; font-family: 'Source Serif 4'; letter-spacing: 0.2px; }
+.nav-dot { width: 4px; height: 4px; border-radius: 50%; opacity: 0; transition: opacity 0.2s; }
+
+/* Dark nav (home) */
+#screen-home .nav-tab svg { fill: rgba(255,255,255,0.28); }
+#screen-home .nav-tab.active svg { fill: var(--rood); }
+#screen-home .nav-lbl { color: rgba(255,255,255,0.28); }
+#screen-home .nav-tab.active .nav-lbl { color: var(--rood); }
+#screen-home .nav-dot { background: var(--rood); }
+#screen-home .nav-tab.active .nav-dot { opacity: 1; }
+
+/* Light nav */
+#screen-archive .nav-tab svg, #screen-settings .nav-tab svg { fill: #bbb; }
+#screen-archive .nav-tab.active svg, #screen-settings .nav-tab.active svg { fill: var(--rood); }
+#screen-archive .nav-lbl, #screen-settings .nav-lbl { color: #bbb; }
+#screen-archive .nav-tab.active .nav-lbl, #screen-settings .nav-tab.active .nav-lbl { color: var(--rood); }
+#screen-archive .nav-dot, #screen-settings .nav-dot { background: var(--rood); }
+#screen-archive .nav-tab.active .nav-dot, #screen-settings .nav-tab.active .nav-dot { opacity: 1; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: rgba(0,0,0,0.88);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+  font-family: 'Source Serif 4', serif;
+  font-size: 12px;
+  padding: 10px 18px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 999;
+}
+
+/* ── DESKTOP ── */
+.desktop-hint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Source Serif 4', serif;
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  white-space: nowrap;
+}
+
+@media (max-width: 430px) {
+  .shell { display: block; }
+  .phone-frame { width: 100%; height: 100vh; border-radius: 0; border: none; box-shadow: none; }
+  .phone-frame::before { display: none; }
+  .status-bar { display: none; }
+  .desktop-hint { display: none; }
+}
+
+/* ── SPLASH ── */
+.splash {
+  position: absolute;
+  inset: 0;
+  background: #E7412B;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  z-index: 500;
+  border-radius: 44px;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+.splash.hide { opacity: 0; pointer-events: none; }
+.splash-icon {
+  width: 72px; height: 72px;
+  background: white;
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
+}
+.splash-icon.show { opacity: 1; transform: translateY(0); }
+.splash-icon span {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 44px;
+  color: #E7412B;
+  line-height: 1;
+}
+.splash-text {
+  text-align: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease 0.3s, transform 0.4s ease 0.3s;
+}
+.splash-text.show { opacity: 1; transform: translateY(0); }
+.splash-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 30px;
+  color: white;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.splash-powered {
+  font-family: 'Source Serif 4', serif;
+  font-weight: 300;
+  font-size: 10px;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+@media (max-width: 430px) {
+  .splash { border-radius: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+<div class="phone-frame">
+
+  <div class="status-bar" id="statusBar">
+    <span class="status-time" id="statusTime">07:00</span>
+    <div class="status-icons">
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor" opacity="0.8">
+        <rect x="0" y="3" width="3" height="8" rx="1"/>
+        <rect x="4.5" y="1.5" width="3" height="9.5" rx="1"/>
+        <rect x="9" y="0" width="3" height="11" rx="1"/>
+        <rect x="13.5" y="0" width="2.5" height="11" rx="1" opacity="0.3"/>
+      </svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" opacity="0.8">
+        <path d="M7.5 2C9.3 2 11 2.8 12.2 4L13.6 2.6C12 1 10 0 7.5 0S3 1 1.4 2.6L2.8 4C4 2.8 5.7 2 7.5 2z"/>
+        <path d="M7.5 5C8.7 5 9.8 5.5 10.5 6.3L11.9 4.9C10.7 3.7 9.2 3 7.5 3S4.3 3.7 3.1 4.9L4.5 6.3C5.2 5.5 6.3 5 7.5 5z"/>
+        <circle cx="7.5" cy="9.5" r="1.5"/>
+      </svg>
+      <svg width="24" height="11" viewBox="0 0 24 11" fill="currentColor">
+        <rect x="0.5" y="0.5" width="21" height="10" rx="2.5" stroke="currentColor" stroke-width="1" fill="none" opacity="0.5"/>
+        <rect x="22" y="3.5" width="2" height="4" rx="1" opacity="0.4"/>
+        <rect x="1.5" y="1.5" width="14" height="8" rx="1.5" opacity="0.9"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ── SPLASH ── -->
+    <div class="splash" id="splash">
+      <div class="splash-icon" id="splashIcon">
+        <span>B</span>
+      </div>
+      <div class="splash-text" id="splashText">
+        <div class="splash-name">Bedenktijd</div>
+        <div class="splash-powered">Powered by Filosofie Magazine</div>
+      </div>
+    </div>
+    <div class="screen active" id="screen-home">
+      <div class="app-header">
+        <div class="app-header-logo">
+          <div class="app-header-icon"><span>B</span></div>
+          <div class="app-header-name">Bedenktijd</div>
+        </div>
+        <button class="bell-btn" onclick="showToast('🔔 Herinnering gepland voor morgen 07:00')">🔔</button>
+      </div>
+      <div class="scroll-area">
+        <div class="home-pad">
+
+          <div class="topbar">
+            <div class="topbar-left">
+              <div class="top-greeting">Goedemorgen</div>
+              <div class="top-date" id="homeDate">Donderdag, 13 mrt</div>
+            </div>
+          </div>
+
+          <div class="hero-card">
+            <div class="day-theme-tag" id="heroTheme">Doordenker donderdag</div>
+            <div class="hero-title" id="heroTitle">Hoe weten we of we iets weten?</div>
+            <div class="hero-desc" id="heroDesc">Vandaag: let op het verschil tussen weten en aannemen in elk gesprek dat je voert.</div>
+          </div>
+
+          <div class="player-card">
+            <div class="player-head">
+              <div class="player-title" id="playerTitle">Hoe weten we of we iets weten?</div>
+              <div class="player-sub" id="playerSub">Fragment van vandaag · 07:00</div>
+            </div>
+            <div class="progress-wrap" onclick="seekHome(event)">
+              <div class="progress-track"><div class="progress-fill" id="homeFill"></div></div>
+              <div class="progress-times"><span id="homeCurrent">0:00</span><span id="homeTotal">0:00</span></div>
+            </div>
+            <div class="player-controls">
+              <button class="skip-btn" id="homeSkipBack" onclick="homeSkipB()" disabled>
+                <div class="skip-circle"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8zm-1 11h2V9h-2v4H9l3 3z"/></svg></div>
+                <span class="skip-lbl">−15s</span>
+              </button>
+              <button class="play-btn" id="homePlayBtn" onclick="toggleHome()">
+                <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <button class="skip-btn" id="homeSkipFwd" onclick="homeSkipF()" disabled>
+                <div class="skip-circle"><svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8zm1 11h-2V9h2v4h2l-3 3z"/></svg></div>
+                <span class="skip-lbl">+15s</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="week-row" id="weekRow"></div>
+
+        </div>
+      </div>
+      <div class="bottom-nav" id="homeNav">
+        <button class="nav-tab active" onclick="switchTab('home')">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span class="nav-lbl">Vandaag</span><div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab" onclick="switchTab('archive')">
+          <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          <span class="nav-lbl">Archief</span><div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab" onclick="switchTab('settings')">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <span class="nav-lbl">Instellingen</span><div class="nav-dot"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── ARCHIVE ── -->
+    <div class="screen" id="screen-archive">
+      <div class="app-header">
+        <div class="app-header-logo">
+          <div class="app-header-icon"><span>B</span></div>
+          <div class="app-header-name">Bedenktijd</div>
+        </div>
+      </div>
+      <div class="arch-hdr">
+        <div class="arch-page-title">Archief</div>
+        <div class="arch-page-sub">Jouw laatste 20 fragmenten</div>
+      </div>
+      <div class="scroll-area">
+        <div class="arch-list-wrap" id="archiveList"></div>
+      </div>
+      <div class="bottom-nav">
+        <button class="nav-tab" onclick="switchTab('home')">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span class="nav-lbl">Vandaag</span><div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab active" onclick="switchTab('archive')">
+          <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          <span class="nav-lbl">Archief</span><div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab" onclick="switchTab('settings')">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <span class="nav-lbl">Instellingen</span><div class="nav-dot"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="screen" id="screen-settings">
+      <div class="app-header">
+        <div class="app-header-logo">
+          <div class="app-header-icon"><span>B</span></div>
+          <div class="app-header-name">Bedenktijd</div>
+        </div>
+      </div>
+      <div class="scroll-area">
+        <div class="settings-pad">
+          <div class="settings-pg-title">Instellingen</div>
+          <div class="sec-label">Notificaties</div>
+          <div class="s-tile">
+            <div><div class="tile-lbl">Dagelijkse herinnering</div><div class="tile-sub">Elke dag om 07:00</div></div>
+            <button class="toggle" id="notifToggle" onclick="toggleNotif()"></button>
+          </div>
+          <div style="height:18px;"></div>
+          <div class="sec-label">Abonnement</div>
+          <div class="s-tile">
+            <div><div class="tile-lbl">Status</div><div class="tile-sub">Actief abonnement</div></div>
+            <span style="font-size:16px;color:#E7412B;">✓</span>
+          </div>
+          <div class="s-tile">
+            <div><div class="tile-lbl">Verlengingsdatum</div><div class="tile-sub">1 april 2026</div></div>
+          </div>
+          <div style="height:18px;"></div>
+          <div class="sec-label">Over de app</div>
+          <div class="s-tile">
+            <div><div class="tile-lbl">Bedenktijd</div><div class="tile-sub">Versie 1.0.0</div></div>
+          </div>
+          <div class="brand-card">
+            <div class="brand-icon-big">
+              <svg viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            </div>
+            <div>
+              <div class="brand-name-big">Bedenktijd</div>
+              <div class="brand-tag">door Filosofie Magazine</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <button class="nav-tab" onclick="switchTab('home')">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span class="nav-lbl">Vandaag</span><div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab" onclick="switchTab('archive')">
+          <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          <span class="nav-lbl">Archief</span><div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab active" onclick="switchTab('settings')">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <span class="nav-lbl">Instellingen</span><div class="nav-dot"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── DETAIL OVERLAY ── -->
+    <div class="detail-overlay" id="detailOverlay">
+      <div class="detail-topbar">
+        <button class="back-btn" onclick="closeDetail()">
+          <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          Terug
+        </button>
+        <span class="detail-day-badge" id="detailDayBadge">Dag 72</span>
+      </div>
+      <div class="detail-scroll">
+        <div class="detail-info-card">
+          <div class="detail-theme-tag" id="detailTheme">Doordenker donderdag</div>
+          <div class="detail-title" id="detailTitle">Hoe weten we of we iets weten?</div>
+          <div class="detail-desc" id="detailDesc">Vandaag: let op het verschil tussen weten en aannemen in elk gesprek dat je voert.</div>
+          <div class="detail-date-str" id="detailDate">13 maart 2026</div>
+        </div>
+        <div class="detail-player-card">
+          <div class="player-head">
+            <div class="player-title" id="detailPTitle">Fragment</div>
+            <div class="player-sub" id="detailPSub">07:00</div>
+          </div>
+          <div class="progress-wrap" onclick="seekDetail(event)">
+            <div class="progress-track"><div class="progress-fill" id="detailFill"></div></div>
+            <div class="progress-times"><span id="detailCurrent">0:00</span><span id="detailTotal">0:00</span></div>
+          </div>
+          <div class="player-controls">
+            <button class="skip-btn" id="detailSkipBack" onclick="detailSkipB()" disabled>
+              <div class="skip-circle"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8zm-1 11h2V9h-2v4H9l3 3z"/></svg></div>
+              <span class="skip-lbl">−15s</span>
+            </button>
+            <button class="play-btn" id="detailPlayBtn" onclick="toggleDetail()">
+              <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="skip-btn" id="detailSkipFwd" onclick="detailSkipF()" disabled>
+              <div class="skip-circle"><svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8zm1 11h-2V9h2v4h2l-3 3z"/></svg></div>
+              <span class="skip-lbl">+15s</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div id="toast"></div>
+<div class="desktop-hint">📱 Open op je telefoon voor de beste ervaring</div>
+
+<script>
+// ── SPLASH ──
+window.addEventListener('load', () => {
+  const splash = document.getElementById('splash');
+  const icon   = document.getElementById('splashIcon');
+  const text   = document.getElementById('splashText');
+  setTimeout(() => { icon.classList.add('show'); }, 100);
+  setTimeout(() => { text.classList.add('show'); }, 100);
+  setTimeout(() => { splash.classList.add('hide'); }, 2000);
+  setTimeout(() => { splash.style.display = 'none'; }, 2550);
+});
+
+// ── DATA ──
+const BASE = 'https://s3.eu-central-1.amazonaws.com/files.fnl.nl/fileadmin/filosofiemagazine/audio/';
+const dagThemas = ['Mindfuck maandag','Tegendraadse dinsdag','Wespennest woensdag','Doordenker donderdag','Ongemakkelijke vrijdag','Vertraagde zaterdag','Zondagse spiegel'];
+
+const tips = [
+  {
+    title: 'Ouders: durf te schipperen',
+    desc: 'Goed ouderschap gaat niet over de perfecte keuze — het gaat over eerlijk navigeren tussen wat je kind nodig heeft en wat jij kunt geven.',
+    audio: BASE + '2026-02-27T09-58-56-521Z_Ouders-durf-te-schipperen.mp3'
+  },
+  {
+    title: 'Spoedcursus intuïtie',
+    desc: 'Intuïtie is geen magie. Het is opgeslagen ervaring die sneller spreekt dan je verstand. Maar wanneer kun je het vertrouwen — en wanneer niet?',
+    audio: BASE + '2026-02-27T14-28-15-829Z_Spoedcursus-intuitie.mp3'
+  },
+  {
+    title: 'Hoe weten we of we iets weten?',
+    desc: 'Vandaag: let op het verschil tussen weten en aannemen in elk gesprek dat je voert.',
+    audio: BASE + '2026-02-27T15-34-16-940Z_Hoe-weten-we-of-we-iets-weten.mp3'
+  },
+];
+
+const months = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const monthsFull = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const days = ['Z','M','D','W','D','V','Z'];
+
+function fmt(s) {
+  if (!s || isNaN(s) || !isFinite(s)) return '0:00';
+  return Math.floor(s/60) + ':' + Math.floor(s%60).toString().padStart(2,'0');
+}
+
+function dayOfYear(d) {
+  return Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000);
+}
+
+// ── CLOCK ──
+function tick() {
+  const n = new Date();
+  document.getElementById('statusTime').textContent =
+    n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
+}
+tick(); setInterval(tick, 15000);
+
+// ── TODAY ──
+const today = new Date();
+const todayDOY = dayOfYear(today);
+const todayTip = tips[(todayDOY - 1) % tips.length];
+const todayTheme = dagThemas[today.getDay()];
+
+document.getElementById('homeDate').textContent = dagThemas[today.getDay()].split(' ').slice(-1)[0].charAt(0).toUpperCase() + dagThemas[today.getDay()].split(' ').slice(-1)[0].slice(1) + ', ' + today.getDate() + ' ' + months[today.getMonth()];
+document.getElementById('heroTheme').textContent = todayTheme;
+document.getElementById('heroTitle').textContent = todayTip.title;
+document.getElementById('heroDesc').textContent = todayTip.desc;
+document.getElementById('playerTitle').textContent = todayTip.title;
+document.getElementById('playerSub').textContent = 'Fragment van vandaag · 07:00';
+
+// ── WEEK STRIP ──
+(function() {
+  const row = document.getElementById('weekRow');
+  const dow = today.getDay();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - dow + i);
+    const isPast = i < dow;
+    const isToday = i === dow;
+    const div = document.createElement('div');
+    div.className = 'day-pill' + (isToday ? ' today' : isPast ? ' done' : '');
+    div.innerHTML = `<div class="day-letter">${days[i]}</div><div class="pill-dot"></div>`;
+    row.appendChild(div);
+  }
+})();
+
+// ── HOME AUDIO ──
+const homeAudio = new Audio();
+homeAudio.crossOrigin = 'anonymous';
+homeAudio.src = todayTip.audio;
+homeAudio.preload = 'metadata';
+
+homeAudio.addEventListener('loadedmetadata', () => {
+  document.getElementById('homeTotal').textContent = fmt(homeAudio.duration);
+});
+homeAudio.addEventListener('timeupdate', () => {
+  const p = homeAudio.duration ? homeAudio.currentTime / homeAudio.duration * 100 : 0;
+  document.getElementById('homeFill').style.width = p + '%';
+  document.getElementById('homeCurrent').textContent = fmt(homeAudio.currentTime);
+  document.getElementById('homeTotal').textContent = fmt(homeAudio.duration);
+});
+homeAudio.addEventListener('ended', () => stopHome());
+homeAudio.addEventListener('error', () => { document.getElementById('playerSub').textContent = 'Audio laden mislukt'; });
+
+function toggleHome() {
+  if (homeAudio.paused) {
+    homeAudio.play().then(() => {
+      document.getElementById('homePlayBtn').classList.add('playing');
+      document.getElementById('homeSkipBack').disabled = false;
+      document.getElementById('homeSkipFwd').disabled = false;
+    }).catch(() => showToast('Audio kon niet starten'));
+  } else { stopHome(); }
+}
+function stopHome() {
+  homeAudio.pause();
+  document.getElementById('homePlayBtn').classList.remove('playing');
+  document.getElementById('homeSkipBack').disabled = true;
+  document.getElementById('homeSkipFwd').disabled = true;
+}
+function homeSkipB() { homeAudio.currentTime = Math.max(0, homeAudio.currentTime - 15); }
+function homeSkipF() { homeAudio.currentTime = Math.min(homeAudio.duration||0, homeAudio.currentTime + 15); }
+function seekHome(e) {
+  const r = e.currentTarget.querySelector('.progress-track').getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+  if (homeAudio.duration) homeAudio.currentTime = ratio * homeAudio.duration;
+}
+
+// ── ARCHIVE ──
+(function() {
+  const list = document.getElementById('archiveList');
+  for (let i = 0; i < 20; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const doy = dayOfYear(d);
+    const tip = tips[(doy - 1) % tips.length];
+    const theme = dagThemas[d.getDay()];
+    const isToday = i === 0;
+    const lbl = i===0 ? 'Vandaag' : i===1 ? 'Gisteren' : `${i} dagen geleden`;
+
+    const el = document.createElement('div');
+    el.className = 'arch-item' + (isToday ? ' today' : '');
+    el.innerHTML = `
+      <div class="date-badge ${isToday ? 'red' : ''}">
+        <div class="badge-day">${d.getDate()}</div>
+        <div class="badge-mo">${months[d.getMonth()]}</div>
+      </div>
+      <div class="item-info">
+        <div class="item-title-a">${tip.title}</div>
+        <div class="item-theme-a">${theme}</div>
+      </div>
+      <div class="item-play-btn ${isToday ? 'red' : ''}">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>`;
+    el.onclick = () => openDetail(tip, theme, d, doy);
+    list.appendChild(el);
+  }
+})();
+
+// ── DETAIL ──
+const detailAudio = new Audio();
+detailAudio.crossOrigin = 'anonymous';
+detailAudio.preload = 'metadata';
+
+detailAudio.addEventListener('loadedmetadata', () => {
+  document.getElementById('detailTotal').textContent = fmt(detailAudio.duration);
+});
+detailAudio.addEventListener('timeupdate', () => {
+  const p = detailAudio.duration ? detailAudio.currentTime / detailAudio.duration * 100 : 0;
+  document.getElementById('detailFill').style.width = p + '%';
+  document.getElementById('detailCurrent').textContent = fmt(detailAudio.currentTime);
+  document.getElementById('detailTotal').textContent = fmt(detailAudio.duration);
+});
+detailAudio.addEventListener('ended', () => stopDetail());
+
+function openDetail(tip, theme, date, doy) {
+  stopDetail();
+  detailAudio.src = tip.audio;
+  detailAudio.currentTime = 0;
+  document.getElementById('detailFill').style.width = '0%';
+  document.getElementById('detailCurrent').textContent = '0:00';
+  document.getElementById('detailTotal').textContent = '0:00';
+
+  document.getElementById('detailDayBadge').textContent = 'Dag ' + doy;
+  document.getElementById('detailTheme').textContent = theme;
+  document.getElementById('detailTitle').textContent = tip.title;
+  document.getElementById('detailDesc').textContent = tip.desc;
+  document.getElementById('detailDate').textContent = date.getDate() + ' ' + monthsFull[date.getMonth()] + ' ' + date.getFullYear();
+  document.getElementById('detailPTitle').textContent = tip.title;
+  document.getElementById('detailPSub').textContent = theme + ' · ' + date.getDate() + ' ' + months[date.getMonth()];
+
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail() {
+  stopDetail();
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+function toggleDetail() {
+  if (detailAudio.paused) {
+    detailAudio.play().then(() => {
+      document.getElementById('detailPlayBtn').classList.add('playing');
+      document.getElementById('detailSkipBack').disabled = false;
+      document.getElementById('detailSkipFwd').disabled = false;
+    }).catch(() => showToast('Audio kon niet starten'));
+  } else { stopDetail(); }
+}
+function stopDetail() {
+  detailAudio.pause();
+  document.getElementById('detailPlayBtn').classList.remove('playing');
+  document.getElementById('detailSkipBack').disabled = true;
+  document.getElementById('detailSkipFwd').disabled = true;
+}
+function detailSkipB() { detailAudio.currentTime = Math.max(0, detailAudio.currentTime - 15); }
+function detailSkipF() { detailAudio.currentTime = Math.min(detailAudio.duration||0, detailAudio.currentTime + 15); }
+function seekDetail(e) {
+  const r = e.currentTarget.querySelector('.progress-track').getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+  if (detailAudio.duration) detailAudio.currentTime = ratio * detailAudio.duration;
+}
+
+// ── NAV ──
+function switchTab(tab) {
+  ['home','archive','settings'].forEach(t => {
+    const s = document.getElementById('screen-' + t);
+    s.classList.toggle('active', t === tab);
+    s.querySelectorAll('.nav-tab').forEach((btn, i) => {
+      btn.classList.toggle('active', ['home','archive','settings'][i] === tab);
+    });
+  });
+  if (tab !== 'home' && !homeAudio.paused) stopHome();
+}
+
+// ── SETTINGS ──
+function toggleNotif() {
+  const t = document.getElementById('notifToggle');
+  t.classList.toggle('off');
+  showToast(t.classList.contains('off') ? '🔕 Notificatie uitgeschakeld' : '🔔 Notificatie ingeschakeld');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(16px)';
+  }, 2800);
+}
+</script>
+</body>
+</html>
