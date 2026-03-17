@@ -98,8 +98,9 @@ html, body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.18s ease;
+  z-index: 1;
 }
-.screen.active { opacity: 1; pointer-events: all; }
+.screen.active { opacity: 1; pointer-events: all; z-index: 2; }
 
 .scroll-area {
   flex: 1;
@@ -1027,9 +1028,8 @@ document.getElementById('playerSub').textContent = 'Fragment van vandaag · 07:0
 
 // ── HOME AUDIO ──
 const homeAudio = new Audio();
-homeAudio.crossOrigin = 'anonymous';
-homeAudio.src = todayTip.audio;
 homeAudio.preload = 'metadata';
+homeAudio.src = todayTip.audio;
 
 homeAudio.addEventListener('loadedmetadata', () => {
   document.getElementById('homeTotal').textContent = fmt(homeAudio.duration);
@@ -1099,7 +1099,6 @@ function seekHome(e) {
 
 // ── DETAIL ──
 const detailAudio = new Audio();
-detailAudio.crossOrigin = 'anonymous';
 detailAudio.preload = 'metadata';
 
 detailAudio.addEventListener('loadedmetadata', () => {
@@ -1165,9 +1164,10 @@ function switchTab(tab) {
   ['home','archive','settings'].forEach(t => {
     const s = document.getElementById('screen-' + t);
     s.classList.toggle('active', t === tab);
-    s.querySelectorAll('.nav-tab').forEach((btn, i) => {
-      btn.classList.toggle('active', ['home','archive','settings'][i] === tab);
-    });
+  });
+  document.querySelectorAll('.nav-tab').forEach(btn => {
+    const target = btn.getAttribute('onclick').match(/'(\w+)'/)[1];
+    btn.classList.toggle('active', target === tab);
   });
   if (tab !== 'home' && !homeAudio.paused) stopHome();
 }
