@@ -22,6 +22,7 @@
 
 html, body {
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
   background: var(--zwart);
   font-family: 'Source Serif 4', Georgia, serif;
@@ -35,14 +36,17 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   background: #111;
   position: relative;
 }
 
 .phone-frame {
   width: 390px;
-  height: 844px;
+  height: min(844px, 100dvh);
   background: var(--zwart);
   border-radius: 52px;
   border: 8px solid #1A1A1A;
@@ -628,8 +632,8 @@ html, body {
 }
 
 @media (max-width: 430px) {
-  .shell { display: block; }
-  .phone-frame { width: 100%; height: 100vh; border-radius: 0; border: none; box-shadow: none; }
+  .shell { display: block; height: 100dvh; }
+  .phone-frame { width: 100%; height: 100dvh; border-radius: 0; border: none; box-shadow: none; }
   .phone-frame::before { display: none; }
   .status-bar { display: none; }
   .desktop-hint { display: none; }
